@@ -56,9 +56,6 @@ const dragging = (e) => {
 
   carousel.scrollLeft = startScrollLeft - (e.pageX - starX);
   x = e.pageX;
-  dots[index].classList.add("dots__dot--active");
-  console.log(x);
-  console.log(starX);
 };
 
 const stopDrag = () => {
@@ -109,7 +106,7 @@ carousel.addEventListener("scroll", infinityScroll);
 // Btn loop event
 btnEls.forEach((btn) => {
   btn.addEventListener("click", (e) => {
-    // e.stopPropagation();
+    e.stopPropagation();
     carousel.scrollLeft += btn.classList.contains("fa-chevron-left")
       ? -firstSlideWidth
       : firstSlideWidth;
@@ -125,10 +122,6 @@ btnEls.forEach((btn) => {
       dots[index].classList.add("dots__dot--active");
     }
   });
-});
-
-btnEls.forEach((btn) => {
-  btn.addEventListener("mouseup", (e) => e.stopPropagation());
 });
 
 // Dots Event
