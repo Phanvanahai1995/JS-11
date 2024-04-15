@@ -36,15 +36,17 @@ let isDrag = false,
   starX,
   startScrollLeft,
   activeDot = false,
-  count = 0,
   x;
 
 const startDrag = (e) => {
-  isDrag = true;
-  activeDot = false;
-  carousel.classList.add("dragging");
-  starX = e.pageX;
-  startScrollLeft = carousel.scrollLeft;
+  if (e.which === 1) {
+    isDrag = true;
+    activeDot = false;
+    carousel.classList.add("dragging");
+    starX = e.pageX;
+    startScrollLeft = carousel.scrollLeft;
+    dots[index].classList.add("dots__dot--active");
+  }
 };
 
 const dragging = (e) => {
@@ -55,24 +57,23 @@ const dragging = (e) => {
   carousel.scrollLeft = startScrollLeft - (e.pageX - starX);
 
   x = e.pageX;
+  dots[index].classList.add("dots__dot--active");
 };
 
 const stopDrag = () => {
   isDrag = false;
-
   carousel.classList.remove("dragging");
-  removeActiveDot();
-  if (activeDot && x < starX) {
-    count++;
-    if (count > dots.length - 1) count = 0;
-    index = count;
-    dots[count].classList.add("dots__dot--active");
-  } else if (activeDot && x > starX) {
-    count--;
 
-    if (count < 0) count = dots.length - 1;
-    index = count;
-    dots[count].classList.add("dots__dot--active");
+  if (activeDot && x < starX) {
+    index++;
+    if (index > dots.length - 1) index = 0;
+    removeActiveDot();
+    dots[index].classList.add("dots__dot--active");
+  } else if (activeDot && x > starX) {
+    index--;
+    if (index < 0) index = dots.length - 1;
+    removeActiveDot();
+    dots[index].classList.add("dots__dot--active");
   }
 };
 
@@ -116,12 +117,10 @@ btnEls.forEach((btn) => {
     if (btn.classList.contains("fa-chevron-right")) {
       index++;
       if (index > dots.length - 1) index = 0;
-      count = index;
       dots[index].classList.add("dots__dot--active");
     } else {
       index--;
       if (index < 0) index = dots.length - 1;
-      count = index;
       dots[index].classList.add("dots__dot--active");
     }
   });
@@ -138,7 +137,6 @@ dots.forEach((dot, i) => {
     removeActiveDot();
     carousel.scrollLeft = carousel.offsetWidth * (i + 1);
     index = i;
-    count = i;
     this.classList.add("dots__dot--active");
   });
 });

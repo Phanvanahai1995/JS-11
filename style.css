@@ -4,9 +4,10 @@
   box-sizing: border-box;
 }
 .container {
-  margin: 20px auto 0;
-  width: 60vw;
+  margin: 0 auto;
+  width: 100vw;
   position: relative;
+  overflow: hidden;
 }
 
 .container i {
@@ -26,11 +27,11 @@
 }
 
 .container i:first-child {
-  left: -22px;
+  left: 22px;
 }
 
 .container i:last-of-type {
-  right: -22px;
+  right: 22px;
 }
 
 .carousel {
@@ -60,7 +61,8 @@
 .slide img {
   cursor: pointer;
   width: 100%;
-  aspect-ratio: 16/9;
+  /* aspect-ratio: 16/9; */
+  object-fit: cover;
 }
 
 .dots {
