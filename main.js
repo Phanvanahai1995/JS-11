@@ -59,6 +59,7 @@ const dragging = (e) => {
 
 const stopDrag = () => {
   isDrag = false;
+
   carousel.classList.remove("dragging");
   removeActiveDot();
   if (activeDot && x < starX) {
@@ -115,11 +116,12 @@ btnEls.forEach((btn) => {
     if (btn.classList.contains("fa-chevron-right")) {
       index++;
       if (index > dots.length - 1) index = 0;
-
+      count = index;
       dots[index].classList.add("dots__dot--active");
     } else {
       index--;
       if (index < 0) index = dots.length - 1;
+      count = index;
       dots[index].classList.add("dots__dot--active");
     }
   });
