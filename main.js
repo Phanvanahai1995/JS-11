@@ -136,6 +136,7 @@ dots.forEach((dot, i) => {
     removeActiveDot();
     carousel.scrollLeft = carousel.offsetWidth * (i + 1);
     index = i;
+    count = i;
     this.classList.add("dots__dot--active");
   });
 });
