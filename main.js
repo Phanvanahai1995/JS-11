@@ -55,9 +55,10 @@ const dragging = (e) => {
   activeDot = true;
 
   carousel.scrollLeft = startScrollLeft - (e.pageX - starX);
-
   x = e.pageX;
   dots[index].classList.add("dots__dot--active");
+  console.log(x);
+  console.log(starX);
 };
 
 const stopDrag = () => {
