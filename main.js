@@ -1,136 +1,145 @@
-const carousel = document.querySelector(".carousel");
-const btnEls = document.querySelectorAll(".container i");
-const dotContainer = document.querySelector(".dots");
-const firstSlideWidth = document.querySelector(".slide").offsetWidth;
-const carouselChildrens = [...carousel.children];
-let slides = document.querySelectorAll(".slide");
+const body = document.querySelector("body");
+const slider = document.querySelector("#slider");
+const container = slider.querySelector(".slides");
+const btnPrev = slider.querySelector(".slider-prev");
+const btnNext = slider.querySelector(".slider-next");
+const slides = slider.querySelectorAll(".slide");
+const dots = slider.querySelector(".slider-dots");
+const threshold = 200;
+const slidesLength = slides.length;
 let index = 0;
+let isDrag = true;
 
-// Functions create dot
-const createDots = function () {
-  slides.forEach(function (_, i) {
-    dotContainer.insertAdjacentHTML(
-      "beforeend",
-      `<button class="dots__dot" data-slide="${i}"></button>`
-    );
-  });
-};
+// Clone first slide and last slide
+const cloneFirst = slides[0].cloneNode(true);
+const cloneLast = slides[slidesLength - 1].cloneNode(true);
+container.appendChild(cloneFirst);
+container.insertBefore(cloneLast, slides[0]);
 
-createDots();
+let posInitial,
+  posFinal,
+  posX1 = 0,
+  posY = 0,
+  posX2 = 0;
 
-// Active dot[0]
-const dots = document.querySelectorAll(".dots__dot");
-dots[0].classList.add("dots__dot--active");
+function next() {
+  loadSlide(++index);
+}
 
-// Clone Slide first and last
-const firstSlide = slides[0].cloneNode(true);
-const lastSlide = slides[slides.length - 1].cloneNode(true);
+function previous() {
+  loadSlide(--index);
+}
 
-firstSlide.id = "first-clone";
-lastSlide.id = "last-clone";
+function dragStart(e) {
+  posInitial = container.offsetLeft;
+  counter = 0;
 
-carousel.append(firstSlide);
-carousel.prepend(lastSlide);
-
-let isDrag = false,
-  starX,
-  startScrollLeft,
-  activeDot = false,
-  x;
-
-const startDrag = (e) => {
-  if (e.which === 1) {
-    isDrag = true;
-    activeDot = false;
-    carousel.classList.add("dragging");
-    starX = e.pageX;
-    startScrollLeft = carousel.scrollLeft;
-    dots[index].classList.add("dots__dot--active");
+  if (e.type === "touchstart") {
+    dragging = false;
+    posX1 = e.touches[0].clientX;
+    posY = e.touches[0].clientY;
+  } else {
+    e.preventDefault();
+    dragging = true;
+    posX1 = e.clientX;
+    posY = e.clientY;
+    document.addEventListener("mouseup", dragEnd);
+    document.addEventListener("mousemove", dragAction);
   }
-};
+}
 
-const dragging = (e) => {
-  e.stopPropagation();
+let counter = 0;
+let dragging = false;
+
+function dragAction(e) {
+  counter++;
+  if (counter <= 4) return;
+
+  const { clientX, clientY } = e.type === "touchmove" ? e.touches[0] : e;
+  if (!dragging && Math.abs(clientY - posY) > Math.abs(clientX - posX1)) {
+    return;
+  }
+  container.classList.add("dragging");
+  dragging = true;
+  posX2 = posX1 - clientX;
+  posX1 = clientX;
+  container.style.left = `${container.offsetLeft - posX2}px`;
+}
+
+function dragEnd(e) {
+  e.preventDefault();
+  counter = 0;
+  posFinal = container.offsetLeft;
+  if (posFinal - posInitial < -threshold) {
+    loadSlide(++index, "drag");
+  } else if (posFinal - posInitial > threshold) {
+    loadSlide(--index, "drag");
+  } else {
+    container.style.left = `${posInitial}px`;
+  }
+  container.classList.remove("dragging");
+  document.removeEventListener("mouseup", dragEnd);
+  document.removeEventListener("mousemove", dragAction);
+}
+
+body.style.backgroundImage = `url(./img/slide-1.jpg)`;
+function loadSlide(newIndex, action) {
+  container.classList.add("shifting");
   if (!isDrag) return;
-  activeDot = true;
 
-  carousel.scrollLeft = startScrollLeft - (e.pageX - starX);
-  x = e.pageX;
-};
+  if (!action) posInitial = container.offsetLeft;
 
-const stopDrag = () => {
+  index = newIndex;
+  let i = index;
+
+  if (i >= 4) i = 1;
+  if (i < 0) i = 3;
+
+  container.style.left = `${(index + 1) * -100}%`;
+  body.style.backgroundImage = `url(./img/slide-${i + 1}.jpg)`;
   isDrag = false;
-  carousel.classList.remove("dragging");
+}
 
-  if (activeDot && x < starX) {
-    index++;
-    if (index > dots.length - 1) index = 0;
-    removeActiveDot();
-    dots[index].classList.add("dots__dot--active");
-  } else if (activeDot && x > starX) {
-    index--;
-    if (index < 0) index = dots.length - 1;
-    removeActiveDot();
-    dots[index].classList.add("dots__dot--active");
+function checkIndex() {
+  container.classList.remove("shifting");
+  index = (index + slidesLength) % slidesLength;
+  container.style.left = `${(index + 1) * -100}%`;
+  isDrag = true;
+  checkDots();
+}
+
+function dotActiveSlide(index) {
+  if (index < 0 || index >= slidesLength) {
+    console.error("Invalid index.");
+    return;
   }
-};
+  loadSlide(index);
+}
 
-const infinityScroll = () => {
-  if (carousel.scrollLeft === 0) {
-    carousel.classList.add("no-transition");
-    carousel.scrollLeft = carousel.scrollWidth - 2 * carousel.offsetWidth;
-    carousel.classList.remove("no-transition");
-  } else if (
-    Math.ceil(carousel.scrollLeft) ===
-    carousel.scrollWidth - carousel.offsetWidth
-  ) {
-    carousel.classList.add("no-transition");
-    carousel.scrollLeft = carousel.offsetWidth;
-    carousel.classList.remove("no-transition");
+function checkDots() {
+  if (!dots) return;
+  slider.querySelectorAll("span").forEach((dot, i) => {
+    dot.classList.toggle("active", i === index);
+  });
+}
+
+if (dots) {
+  for (let i = 0; i < slidesLength; i++) {
+    const dot = document.createElement("span");
+    dot.addEventListener("click", () => {
+      dotActiveSlide(i);
+      checkDots();
+    });
+    dots.appendChild(dot);
   }
-};
+  checkDots();
+}
 
-// Function remove active dot
-const removeActiveDot = function () {
-  dots.forEach((dot) => {
-    dot.classList.remove("dots__dot--active");
-  });
-};
-
-// Carousel Event
-carousel.addEventListener("mousedown", startDrag);
-carousel.addEventListener("mousemove", dragging);
-carousel.addEventListener("mouseup", stopDrag);
-carousel.addEventListener("scroll", infinityScroll);
-
-// Btn loop event
-btnEls.forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    carousel.scrollLeft += btn.classList.contains("fa-chevron-left")
-      ? -firstSlideWidth
-      : firstSlideWidth;
-
-    removeActiveDot();
-    if (btn.classList.contains("fa-chevron-right")) {
-      index++;
-      if (index > dots.length - 1) index = 0;
-      dots[index].classList.add("dots__dot--active");
-    } else {
-      index--;
-      if (index < 0) index = dots.length - 1;
-      dots[index].classList.add("dots__dot--active");
-    }
-  });
-});
-
-// Dots Event
-
-dots.forEach((dot, i) => {
-  dot.addEventListener("click", function () {
-    removeActiveDot();
-    carousel.scrollLeft = carousel.offsetWidth * (i + 1);
-    index = i;
-    this.classList.add("dots__dot--active");
-  });
-});
+// Event listener
+container.addEventListener("mousedown", dragStart);
+container.addEventListener("touchstart", dragStart, { passive: true });
+container.addEventListener("touchend", dragEnd);
+container.addEventListener("touchmove", dragAction);
+btnPrev.addEventListener("click", previous);
+btnNext.addEventListener("click", next);
+container.addEventListener("transitionend", checkIndex);
